@@ -1,51 +1,50 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
-import TodoList, {TodoListProps} from './TodoList';
-import { TodoProps } from './TodoElement';
-import AddingForm from './AddingForm';
+import React, {useState} from 'react'
+import {View, Text, Button, ScrollView, TextInput} from 'react-native'
+import CheckBox from '@react-native-community/checkbox';
+import {observer} from 'mobx-react-lite'
+import {nanoid} from 'nanoid'
+import TodoStore from './TodoList'
 
-function App() {
-  // return (
-  //   <div className="App">
-  //     <header className="App-header">
-  //       <img src={logo} className="App-logo" alt="logo" />
-  //       <p>
-  //         Edit <code>src/App.tsx</code> and save to reload.
-  //       </p>
-  //       <a
-  //         className="App-link"
-  //         href="https://reactjs.org"
-  //         target="_blank"
-  //         rel="noopener noreferrer"
-  //       >
-  //         Learn React
-  //       </a>
-  //     </header>
-  //   </div>
-  // );
+const Todo = observer(() => {
+    const [text, setText] = useState('')
 
-  const a : TodoProps = {
-    
-      name: "Test task",
-      description: "Use React and Mobx",
-      expireDate: new Date("2021-03-01"),
-      status: false
-    
-  }
+    return (
+        <ScrollView>
+            <TextInput
+                style={{height: 40}}
+                placeholder="Create your new todo"
+                onChangeText={t => setText(t)} defaultValue={text}
+            />
+            <Button
+                title="Add Todo" onPress={
+                () => TodoStore.createTodo({id: nanoid(), title: text, completed: false})}
+            />
+            <Button
+                title="Show only done"
+                onPress={() => TodoStore.todos.filter(t => t.completed)}
+            />
+            <Button
+                title="Show only undone"
+                onPress={() => TodoStore.todos.filter(t => !t.completed)}
+            />
 
-  const arr : TodoListProps = {
-    todosList: [
-      a
-    ]
-  }
+            {TodoStore.todos.map(({id, title, completed}) => (
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        width: 350,
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}
+                    key={id}
+                >
+                    <CheckBox value={completed} onValueChange={() => TodoStore.completeTodo(id)}/>
+                    <Text>{title}</Text>
+                    <Button title="Delete" onPress={() => TodoStore.deleteTodo(id)}/>
+                </View>
+            ))}
+        </ScrollView>
+    )
+})
 
-  return (
-  <div className='App'>
-    <AddingForm />
-    <TodoList todosList={arr.todosList}/>
-  </div>
-  )
-}
-
-export default App;
+export default Todo
